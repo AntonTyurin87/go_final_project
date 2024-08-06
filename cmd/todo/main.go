@@ -29,11 +29,12 @@ func main() {
 
 	//Подключаемся к БД
 	db, err := sqlite.InitDB(dbURL)
+	defer db.Close()
 	if err != nil {
 		fmt.Println("Ошибка инициализации БД ", err)
 	}
 
-	storage := sqlite.NewStorage(db)
+	sqlite.TodoStorage = sqlite.NewStorage(db)
 
 	//Создаём роутер
 	r := chi.NewRouter()
@@ -45,14 +46,14 @@ func main() {
 	r.Get("/api/nextdate", handlers.GetNextDateHandler)
 
 	//Работаем с одной задачей
-	r.Post("/api/task", storage.PostOneTaskHandler)
-	r.Get("/api/task", storage.GetOneTaskHandler)
-	r.Put("/api/task", storage.PutOneTaskHandler)
-	r.Post("/api/task/done", storage.DoneOneTaskHandler)
-	r.Delete("/api/task", storage.DeleteOneTaskHandler)
+	r.Post("/api/task", handlers.PostOneTaskHandler)
+	r.Get("/api/task", handlers.GetOneTaskHandler)
+	r.Put("/api/task", handlers.PutOneTaskHandler)
+	r.Post("/api/task/done", handlers.DoneOneTaskHandler)
+	r.Delete("/api/task", handlers.DeleteOneTaskHandler)
 
 	//Работа с группой задач
-	r.Get("/api/tasks", storage.GetTasksHandler)
+	r.Get("/api/tasks", handlers.GetTasksHandler)
 
 	//Запускаем сервер
 	fmt.Printf("Сервер TODO запущен! Порт %s.\n", port)

@@ -1,4 +1,4 @@
-package datawork
+package tasks
 
 import (
 	"errors"
@@ -34,32 +34,24 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 
 	switch string(repeat[0]) {
 	case "y":
-		nextDate, err = yearDateToRepeate(now, date, repeat)
+		nextDate, err = yearDateToRepeat(now, date, repeat)
 		if err != nil {
 			fmt.Println("Год для повторений не корректен ", err)
 			return nextDateString, err
 		}
 	case "d":
-		nextDate, err = dayDateToRepeate(now, date, repeat)
+		nextDate, err = dayDateToRepeat(now, date, repeat)
 		if err != nil {
 			fmt.Println("День для повторений не корректен ", err)
 			return nextDateString, err
 		}
 	case "w":
-		nextDate, err = weekDateToRepeate(now, date, repeat)
+		nextDate, err = weekDateToRepeat(now, date, repeat)
 		if err != nil {
 			fmt.Println("Неделя для повторений не корректна ", err)
 			return nextDateString, err
 		}
 
-		/*
-			case "m":
-				nextDatString, err := monthDateToRepeate(now, date, repeat)
-				if err != nil {
-					fmt.Println("Месяц для повторений не корректен ", err)
-					return nextDatString, err
-				}
-		*/
 	default:
 		err0 := errors.New("значение для повторений не корректно")
 		return nextDateString, err0
@@ -69,8 +61,8 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	return nextDateString, nil
 }
 
-// yearDateToRepeate - возвращает следующую дату для ежегодного повторения
-func yearDateToRepeate(now time.Time, date string, repeat string) (time.Time, error) {
+// yearDateToRepeat - возвращает следующую дату для ежегодного повторения
+func yearDateToRepeat(now time.Time, date string, repeat string) (time.Time, error) {
 
 	var nextDate time.Time
 
@@ -95,8 +87,8 @@ func yearDateToRepeate(now time.Time, date string, repeat string) (time.Time, er
 	return nextDate, nil
 }
 
-// dayDateToRepeate - возвращает следующую дату для повторения через несколько дней
-func dayDateToRepeate(now time.Time, date string, repeat string) (time.Time, error) {
+// dayDateToRepeat - возвращает следующую дату для повторения через несколько дней
+func dayDateToRepeat(now time.Time, date string, repeat string) (time.Time, error) {
 
 	var nextDate time.Time
 
@@ -122,8 +114,8 @@ func dayDateToRepeate(now time.Time, date string, repeat string) (time.Time, err
 	return nextDate, nil
 }
 
-// weekDateToRepeate - возвращает следующую дату для еженедельного повторения
-func weekDateToRepeate(now time.Time, date string, repeat string) (time.Time, error) {
+// weekDateToRepeat - возвращает следующую дату для еженедельного повторения
+func weekDateToRepeat(now time.Time, date string, repeat string) (time.Time, error) {
 
 	week := map[time.Weekday]int{time.Monday: 1, time.Tuesday: 2, time.Wednesday: 3, time.Thursday: 4, time.Friday: 5, time.Saturday: 6, time.Sunday: 7}
 

@@ -15,7 +15,6 @@ func InitDB(dbURL string) (*sql.DB, error) {
 	if err != nil {
 		fmt.Println("Нет подключения к базе данных", err)
 	}
-	//defer db.Close()
 
 	return db, nil
 }

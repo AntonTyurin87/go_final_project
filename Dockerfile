@@ -1,4 +1,4 @@
-FROM golang:1.22
+FROM golang:1.21.5
 
 WORKDIR /app
 
@@ -9,10 +9,14 @@ COPY ./ ./
 COPY web/  ./bin/web
 COPY sqlite/scheduler_creator.sql ./bin/sqlite
 
-RUN go mod tidy
+#Переменные окружения для ОС
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64 TODO_DBFILE=""
+
+#Переменная окружения для адреса базы данных
+ENV TODO_DBFILE=""
 
 #Создаёт исполняемый файл в среде, реализованной в контейнере
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 TODO_DBFILE="" go build -o /app/bin/todorun ./cmd/todo/main.go
+RUN go build -o /app/bin/todorun ./cmd/todo/main.go
 
 #Запускает исполняемый файл
-CMD ["/app/bin/todorun"]
+CMD ["./bin/todorun"]
