@@ -3,10 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"go_final_project/sqlite"
-	"go_final_project/tasks"
 	"io"
 	"net/http"
+
+	"go_final_project/sqlite"
+	"go_final_project/tasks"
 )
 
 // GetOneTaskHandler - возвращает одну задачу по выданному признаку (по id)
@@ -18,7 +19,7 @@ func GetOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := r.FormValue("id")
 
-	//Проверяем не пустой ли id
+	// Проверяем не пустой ли id
 	switch {
 	case id == "":
 		errRes.StrEr = "Не указан идентификатор"
@@ -27,14 +28,14 @@ func GetOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
 		}
 	default:
-		//Проверяем id
+		// Проверяем id
 		data, err := tasks.IDValidation(id)
 		if err != nil {
 			fmt.Println("Ошибка конвертации входящего значения api/tasks. ", err)
 		}
 
-		//Идём искать одну задачу по входным данным
-		result, err = sqlite.TodoStorage.OneTaskDataRead(data)
+		// Идём искать одну задачу по входным данным
+		result, err = sqlite.TodoStorage.GetTask(data)
 		if err != nil {
 			fmt.Println("Ошибка чтения из БД ", err)
 		}
@@ -54,17 +55,17 @@ func PostOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var errRes sqlite.StringError
 	var result []byte
 
-	//Читаем сообщение
+	// Читаем сообщение
 	httpData, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("Не прочитано тело запроса api/tasks. ", err)
 	}
 
-	//Проверяем полученную информацию о задаче
+	// Проверяем полученную информацию о задаче
 	data, err := tasks.TaskDataValidation(httpData)
 
 	switch {
-	//Если не смогли валедировать входящие данные
+	// Если не смогли валедировать входящие данные
 	case err != nil:
 		fmt.Println("Ошибка конвертации входящего значения api/tasks. ", err)
 		errRes.StrEr = fmt.Sprint(err)
@@ -72,16 +73,16 @@ func PostOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
 		}
-	//Если заголовок пуст возвращаем ошибку
+	// Если заголовок пуст возвращаем ошибку
 	case data.Title == "":
 		errRes.StrEr = "Не указан заголовок задачи"
 		result, err = json.Marshal(errRes)
 		if err != nil {
 			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
 		}
-	//Идём записывать задачу в базу
+	// Идём записывать задачу в базу
 	default:
-		result, err = sqlite.TodoStorage.OneTaskDataWrite(data)
+		result, err = sqlite.TodoStorage.AddTask(data)
 		if err != nil {
 			fmt.Println("Ошибка записи в БД ", err)
 		}
@@ -100,13 +101,13 @@ func PutOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var errRes sqlite.StringError
 	var result []byte
 
-	//Читаем сообщение
+	// Читаем сообщение
 	httpData, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("Не прочитано тело запроса api/tasks. ", err)
 	}
 
-	//Проверяем полученную информацию о задаче
+	// Проверяем полученную информацию о задаче
 	data, err := tasks.TaskDataValidation(httpData)
 
 	switch {
@@ -117,9 +118,9 @@ func PutOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
 		}
-		//Идём записывать задачу в базу
+		// Идём записывать задачу в базу
 	default:
-		result, err = sqlite.TodoStorage.OneTaskDataUpdate(data)
+		result, err = sqlite.TodoStorage.UpdateTask(data)
 		if err != nil {
 			fmt.Println("Ошибка записи в БД ", err)
 			errRes.StrEr = "Задача не найдена"
@@ -146,7 +147,7 @@ func DoneOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := r.FormValue("id")
 
-	//Проверяем не пустой ли id
+	// Проверяем не пустой ли id
 	switch {
 	case id == "":
 		errRes.StrEr = "Не указан идентификатор"
@@ -155,14 +156,14 @@ func DoneOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
 		}
 	default:
-		//Проверяем id
+		// Проверяем id
 		data, err := tasks.IDValidation(id)
 		if err != nil {
 			fmt.Println("Ошибка конвертации входящего значения api/tasks. ", err)
 		}
 
-		//Идём закрывать одну задачу по входным данным
-		result, err = sqlite.TodoStorage.OneTaskDataDone(data)
+		// Идём закрывать одну задачу по входным данным
+		result, err = sqlite.TodoStorage.DoneTasks(data)
 		if err != nil {
 			fmt.Println("Ошибка чтения из БД ", err)
 		}
@@ -184,7 +185,7 @@ func DeleteOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := r.FormValue("id")
 
-	//Проверяем не пустой ли id
+	// Проверяем не пустой ли id
 	switch {
 	case id == "":
 		errRes.StrEr = "Не указан идентификатор"
@@ -193,14 +194,14 @@ func DeleteOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
 		}
 	default:
-		//Проверяем id
+		// Проверяем id
 		data, err := tasks.IDValidation(id)
 		if err != nil {
 			fmt.Println("Ошибка конвертации входящего значения api/tasks. ", err)
 		}
 
-		//Идём искать одну задачу по входным данным
-		result, err = sqlite.TodoStorage.OneTaskDataDelete(data)
+		// Идём искать одну задачу по входным данным
+		result, err = sqlite.TodoStorage.DeleteTask(data)
 		if err != nil {
 			fmt.Println("Ошибка чтения из БД ", err)
 		}

@@ -3,8 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"go_final_project/sqlite"
 	"net/http"
+
+	"go_final_project/sqlite"
 )
 
 // GetTasksHandler - возвращает группу задач
@@ -16,7 +17,7 @@ func GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 
 	search := r.FormValue("search")
 
-	result, err = sqlite.TodoStorage.GroupTasksDataRead(search) //GroupTasksDataRead(search)
+	result, err = sqlite.TodoStorage.FindTasks(search) // FindTasks(search)
 	if err != nil {
 		fmt.Println("Ошибка чтения из БД ", err)
 		errRes.StrEr = fmt.Sprint(err)

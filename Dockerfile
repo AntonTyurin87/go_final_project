@@ -10,7 +10,7 @@ COPY web/  ./bin/web
 COPY sqlite/scheduler_creator.sql ./bin/sqlite
 
 #Переменные окружения для ОС
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64 TODO_DBFILE=""
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
 #Переменная окружения для адреса базы данных
 ENV TODO_DBFILE=""

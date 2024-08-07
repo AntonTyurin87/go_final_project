@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"go_final_project/tasks"
 	"time"
+
+	"go_final_project/tasks"
 
 	_ "modernc.org/sqlite"
 )
@@ -41,16 +42,15 @@ func NewStorage(db *sql.DB) Storage {
 // TodoStorage - переменная для обращения к БД
 var TodoStorage Storage
 
-// OneTaskDataRead - возвращает информацию об одной задаче по входным данным
-func (s *Storage) OneTaskDataRead(data tasks.Task) ([]byte, error) {
+// GetTask - возвращает информацию об одной задаче по входным данным
+func (s *Storage) GetTask(data tasks.Task) ([]byte, error) {
 
-	var errRes StringError
 	var result []byte
 	var returnData tasks.Task
 	var row *sql.Rows
 	var err error
 
-	//Формируем запрос в базу
+	// Формируем запрос в базу
 	qeryToDB := `SELECT id, date, title, comment, repeat
 					FROM scheduler
 				WHERE id = ?;`
@@ -62,7 +62,7 @@ func (s *Storage) OneTaskDataRead(data tasks.Task) ([]byte, error) {
 	}
 	defer row.Close()
 
-	//Укладываем результаты запроса в структуру
+	// Укладываем результаты запроса в структуру
 	for row.Next() {
 		if err := row.Scan(&returnData.ID, &returnData.Date, &returnData.Title, &returnData.Comment, &returnData.Repeat); err != nil {
 			return nil, err
@@ -73,17 +73,7 @@ func (s *Storage) OneTaskDataRead(data tasks.Task) ([]byte, error) {
 		}
 	}
 
-	//Если id задачи отсутствует, то формируем сообщение об ошибке
-	if returnData.ID == "" {
-		errRes.StrEr = "Задача не найдена"
-		result, err := json.Marshal(errRes)
-		if err != nil {
-			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
-		}
-		return result, err
-	}
-
-	//Формируем сообщение с информацией о задаче
+	// Формируем сообщение с информацией о задаче
 	result, err = json.Marshal(returnData)
 	if err != nil {
 		fmt.Println("Не получилось сформировать вывод в виде JSON ", err)
@@ -93,14 +83,14 @@ func (s *Storage) OneTaskDataRead(data tasks.Task) ([]byte, error) {
 	return result, nil
 }
 
-// OneTaskDataWrite - записывает в БД данные о внесённой задаче
-func (s *Storage) OneTaskDataWrite(data tasks.Task) ([]byte, error) {
+// AddTask - записывает в БД данные о внесённой задаче
+func (s *Storage) AddTask(data tasks.Task) ([]byte, error) {
 
 	var err error
 	var result []byte
 	var returnData IDType
 
-	//Формируем запрос в базу
+	// Формируем запрос в базу
 	qeryToDB := `INSERT INTO
 					scheduler (date, title, comment, repeat)
 				VALUES (?, ?, ?, ?);`
@@ -111,7 +101,7 @@ func (s *Storage) OneTaskDataWrite(data tasks.Task) ([]byte, error) {
 		return result, err
 	}
 
-	//Возвращаем id последней записи
+	// Возвращаем id последней записи
 	id, err := res.LastInsertId()
 	if err != nil {
 		fmt.Println("ID последней записи в БД не удалось получить ", err)
@@ -120,7 +110,7 @@ func (s *Storage) OneTaskDataWrite(data tasks.Task) ([]byte, error) {
 
 	returnData.ID = id
 
-	//Формируем сообщение с информацией о задаче
+	// Формируем сообщение с информацией о задаче
 	result, err = json.Marshal(returnData)
 	if err != nil {
 		fmt.Println("Не получилось выдать ID последней записи в виде JSON ", err)
@@ -130,14 +120,14 @@ func (s *Storage) OneTaskDataWrite(data tasks.Task) ([]byte, error) {
 	return result, nil
 }
 
-// OneTaskDataUpdate - изменяет в БД данные о внесённой задаче
-func (s *Storage) OneTaskDataUpdate(data tasks.Task) ([]byte, error) {
+// UpdateTask - изменяет в БД данные о внесённой задаче
+func (s *Storage) UpdateTask(data tasks.Task) ([]byte, error) {
 
 	var errRes StringError
 	var result []byte
 	var err error
 
-	//Формируем запрос в базу
+	// Формируем запрос в базу
 	qeryToDB := `UPDATE
 					scheduler SET date = ?, title = ?, comment = ?, repeat = ?
 				WHERE id = ? ;`
@@ -148,10 +138,10 @@ func (s *Storage) OneTaskDataUpdate(data tasks.Task) ([]byte, error) {
 		return result, err
 	}
 
-	//Возвращаем количество затронутых записей
+	// Возвращаем количество затронутых записей
 	num, err := res.RowsAffected()
 
-	if err != nil || num == 0 {
+	if err != nil {
 		fmt.Println("ID последней записи в БД не удалось получить ", err)
 		errRes.StrEr = "Задача не найдена"
 		result, err = json.Marshal(errRes)
@@ -162,7 +152,18 @@ func (s *Storage) OneTaskDataUpdate(data tasks.Task) ([]byte, error) {
 		return result, err
 	}
 
-	//Если ошибок не накопилось, то результат будет {}
+	if num == 0 {
+		fmt.Println("ID последней записи в БД не удалось получить, num = 0 ", err)
+		errRes.StrEr = "Задача не найдена"
+		result, err = json.Marshal(errRes)
+		if err != nil {
+			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
+			return result, err
+		}
+		return result, err
+	}
+
+	// Если ошибок не накопилось, то результат будет {}
 	result, err = json.Marshal(errRes)
 	if err != nil {
 		fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
@@ -172,14 +173,14 @@ func (s *Storage) OneTaskDataUpdate(data tasks.Task) ([]byte, error) {
 	return result, err
 }
 
-// OneTaskDataDelete - удаляет из БД данные об одной задаче
-func (s *Storage) OneTaskDataDelete(data tasks.Task) ([]byte, error) {
+// DeleteTask - удаляет из БД данные об одной задаче
+func (s *Storage) DeleteTask(data tasks.Task) ([]byte, error) {
 
 	var errRes StringError
 	var err error
 	var result []byte
 
-	//Формируем запрос в базу
+	// Формируем запрос в базу
 	qeryToDB := `DELETE FROM
 					scheduler 
 					WHERE id = ?;`
@@ -190,7 +191,7 @@ func (s *Storage) OneTaskDataDelete(data tasks.Task) ([]byte, error) {
 		return result, err
 	}
 
-	//Возвращаем количество затронутых записей
+	// Возвращаем количество затронутых записей
 	num, err := res.RowsAffected()
 
 	if err != nil || num == 0 {
@@ -204,7 +205,7 @@ func (s *Storage) OneTaskDataDelete(data tasks.Task) ([]byte, error) {
 		return result, err
 	}
 
-	//Если ошибок не накопилось, то результат будет {}
+	// Если ошибок не накопилось, то результат будет {}
 	result, err = json.Marshal(errRes)
 	if err != nil {
 		fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
@@ -214,8 +215,8 @@ func (s *Storage) OneTaskDataDelete(data tasks.Task) ([]byte, error) {
 	return result, err
 }
 
-// OneTaskDataDone - удаляет из БД данные об одной задаче при её выполнении
-func (s *Storage) OneTaskDataDone(data tasks.Task) ([]byte, error) {
+// DoneTasks - удаляет из БД данные об одной задаче при её выполнении
+func (s *Storage) DoneTasks(data tasks.Task) ([]byte, error) {
 
 	var errRes StringError
 	var result []byte
@@ -225,7 +226,7 @@ func (s *Storage) OneTaskDataDone(data tasks.Task) ([]byte, error) {
 
 	now := time.Now()
 
-	//Формируем запрос в базу
+	// Формируем запрос в базу
 	qeryToDB := `SELECT id, date, title, comment, repeat
 					FROM scheduler
 					WHERE id = ?;`
@@ -237,7 +238,7 @@ func (s *Storage) OneTaskDataDone(data tasks.Task) ([]byte, error) {
 	}
 	defer row.Close()
 
-	//Укладываем результаты запроса в структуру
+	// Укладываем результаты запроса в структуру
 	for row.Next() {
 		if err := row.Scan(&returnData.ID, &returnData.Date, &returnData.Title, &returnData.Comment, &returnData.Repeat); err != nil {
 			return nil, err
@@ -249,10 +250,10 @@ func (s *Storage) OneTaskDataDone(data tasks.Task) ([]byte, error) {
 		}
 	}
 
-	//Есть ли правило для повторения задачи
+	// Есть ли правило для повторения задачи
 	switch {
 	case returnData.Repeat == "":
-		result, err = TodoStorage.OneTaskDataDelete(returnData)
+		result, err = TodoStorage.DeleteTask(returnData)
 		if err != nil {
 			fmt.Println("Не удалось удалить задачу из БД .", err)
 			return result, err
@@ -264,7 +265,7 @@ func (s *Storage) OneTaskDataDone(data tasks.Task) ([]byte, error) {
 			return result, err
 		}
 
-		result, err = TodoStorage.OneTaskDataUpdate(returnData)
+		result, err = TodoStorage.UpdateTask(returnData)
 		if err != nil {
 			fmt.Println("Ошибка записи в БД ", err)
 			return result, err
@@ -272,7 +273,7 @@ func (s *Storage) OneTaskDataDone(data tasks.Task) ([]byte, error) {
 
 	}
 
-	//Если ошибок не накопилось, то результат будет {}
+	// Если ошибок не накопилось, то результат будет {}
 	result, err = json.Marshal(errRes)
 	if err != nil {
 		fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
@@ -282,8 +283,8 @@ func (s *Storage) OneTaskDataDone(data tasks.Task) ([]byte, error) {
 	return result, err
 }
 
-// GroupTasksDataRead - возвращает информацию о группе последних задач
-func (s *Storage) GroupTasksDataRead(search string) ([]byte, error) {
+// FindTasks - возвращает информацию о группе последних задач
+func (s *Storage) FindTasks(search string) ([]byte, error) {
 
 	var errRes StringError
 	var err error
@@ -301,7 +302,7 @@ func (s *Storage) GroupTasksDataRead(search string) ([]byte, error) {
 	}
 
 	switch {
-	//Ищем всё подряд
+	// Ищем всё подряд
 	case search == "":
 		queryToDB = `SELECT id, date, title, comment, repeat
 						FROM scheduler
@@ -313,7 +314,7 @@ func (s *Storage) GroupTasksDataRead(search string) ([]byte, error) {
 			return result, err
 		}
 
-	//Ищем по дате
+	// Ищем по дате
 	case searchDate != "":
 		queryToDB = `SELECT id, date, title, comment, repeat
 							FROM scheduler
@@ -326,7 +327,7 @@ func (s *Storage) GroupTasksDataRead(search string) ([]byte, error) {
 			return result, err
 		}
 
-	//Ищем по заголовку или комментарию
+	// Ищем по заголовку или комментарию
 	default:
 
 		search = fmt.Sprint("%" + search + "%")
@@ -351,7 +352,7 @@ func (s *Storage) GroupTasksDataRead(search string) ([]byte, error) {
 			return result, err
 		}
 
-		if err != nil {
+		if err = rows.Err(); err != nil {
 			fmt.Println("Не удалось записать корректные данные из БД .", err)
 			return result, err
 		}

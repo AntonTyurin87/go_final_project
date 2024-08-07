@@ -37,7 +37,7 @@ func DateValidation(date string) (time.Time, error) {
 
 	var dateTime time.Time
 
-	dateTime, err := time.Parse("20060102", date)
+	dateTime, err := time.Parse(DateFormat, date)
 	if err != nil {
 		fmt.Println("Строковые данные даты не корректны. ", err)
 		return dateTime, err
@@ -56,13 +56,13 @@ func RepeatValidation(repeat string) error {
 	repeatData := strings.Split(repeat, " ")
 
 	switch string(repeatData[0]) {
-	//Ежегодно
+	// Ежегодно
 	case "y":
 		if len(repeatData) == 1 {
 			return nil
 
 		}
-	//Через несколько дней
+	// Через несколько дней
 	case "d":
 		if len(repeatData) < 2 {
 			err2 := errors.New("не указан интервал для повторений в днях")
@@ -84,18 +84,18 @@ func RepeatValidation(repeat string) error {
 			err4 := errors.New("превышен интервал для повторений в днях")
 			return err4
 		}
-	//По дням недели
+	// По дням недели
 	case "w":
 		weekDays := strings.Split(repeat, " ")
 
-		//Проверка на наличие дня недели
+		// Проверка на наличие дня недели
 		if len(weekDays) < 2 {
 			err5 := errors.New("не верный день недели")
 			fmt.Println(err5)
 			return err5
 		}
 
-		//Проверка на наличие одного дня недели
+		// Проверка на наличие одного дня недели
 		if len(weekDays[1]) == 1 {
 			dayNumber, err := strconv.Atoi(weekDays[1])
 
@@ -109,7 +109,7 @@ func RepeatValidation(repeat string) error {
 				fmt.Println(err6)
 				return err6
 			}
-			//Если дней не один
+			// Если дней не один
 		} else {
 
 			for _, value := range strings.Split(weekDays[1], ",") {
@@ -127,7 +127,7 @@ func RepeatValidation(repeat string) error {
 				}
 			}
 		}
-		//TODO Дописать проверку по месяцам
+		// TODO Дописать проверку по месяцам
 
 	default:
 		err8 := errors.New("неизвестное значение для повторений")
