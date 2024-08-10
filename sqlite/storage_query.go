@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"go_final_project/date"
 	"go_final_project/tasks"
 
 	_ "modernc.org/sqlite"
@@ -49,6 +50,7 @@ func (s *Storage) GetTask(data tasks.Task) ([]byte, error) {
 	var returnData tasks.Task
 	var row *sql.Rows
 	var err error
+	var errRes StringError
 
 	// Формируем запрос в базу
 	qeryToDB := `SELECT id, date, title, comment, repeat
@@ -71,6 +73,17 @@ func (s *Storage) GetTask(data tasks.Task) ([]byte, error) {
 			fmt.Println("Не удалось записать корректную дату из БД .", err)
 			return result, err
 		}
+	}
+
+	// Проверка на то, что задача вообще была в базе
+	if returnData.ID == "" {
+		errRes.StrEr = "Задача не найдена"
+		result, err = json.Marshal(errRes)
+		if err != nil {
+			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
+			return result, err
+		}
+		return result, err
 	}
 
 	// Формируем сообщение с информацией о задаче
@@ -192,10 +205,21 @@ func (s *Storage) DeleteTask(data tasks.Task) ([]byte, error) {
 	}
 
 	// Возвращаем количество затронутых записей
-	num, err := res.RowsAffected()
+	id, err := res.LastInsertId()
 
-	if err != nil || num == 0 {
+	if err != nil {
 		fmt.Println("ID последней записи в БД не удалось получить ", err)
+		errRes.StrEr = "Задача не найдена"
+		result, err = json.Marshal(errRes)
+		if err != nil {
+			fmt.Println("Не удалось упаковать ошибку в JSON. ", err)
+			return result, err
+		}
+		return result, err
+	}
+
+	if id == 0 {
+		fmt.Println("ID последней записи в БД не удалось получить, num = 0 ", err)
 		errRes.StrEr = "Задача не найдена"
 		result, err = json.Marshal(errRes)
 		if err != nil {
@@ -259,7 +283,7 @@ func (s *Storage) DoneTasks(data tasks.Task) ([]byte, error) {
 			return result, err
 		}
 	default:
-		returnData.Date, err = tasks.NextDate(now, returnData.Date, returnData.Repeat)
+		returnData.Date, err = date.NextDate(now, returnData.Date, returnData.Repeat)
 		if err != nil {
 			fmt.Println("Не удалось получить новую дату для задачи .", err)
 			return result, err
@@ -270,7 +294,6 @@ func (s *Storage) DoneTasks(data tasks.Task) ([]byte, error) {
 			fmt.Println("Ошибка записи в БД ", err)
 			return result, err
 		}
-
 	}
 
 	// Если ошибок не накопилось, то результат будет {}
@@ -295,7 +318,7 @@ func (s *Storage) FindTasks(search string) ([]byte, error) {
 	returnData := TasksType{Tasks: make([]tasks.Task, 0, 20)}
 
 	if search != "" && len(search) == 10 {
-		searchDate, err = tasks.DateConvert(search)
+		searchDate, err = date.Convert(search)
 		if err != nil {
 			fmt.Println("На входе не дата ", err)
 		}

@@ -1,4 +1,5 @@
 run:
+
 		GOOS=linux GOARCH=amd64 go run cmd/todo/main.go
 		#TODO_DBFILE="/home/anton/go_final_project/scheduler.db" - для проверки с БД в корне проекта
 
@@ -25,6 +26,9 @@ build_mac64:
 		cp sqlite/scheduler_creator.sql OS_bin/TODO_mac64/sqlite
 		cp -r ./web ./OS_bin/TODO_mac64/
 		GOOS=darwin GOARCH=arm64 TODO_DBFILE="" go build -o OS_bin/TODO_mac64/TODO_mac cmd/todo/main.go
+
+clean:
+		go clean -cache
 
 test1:
 		go test -run ^TestApp ./tests

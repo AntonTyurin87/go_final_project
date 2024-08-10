@@ -196,14 +196,17 @@ func DeleteOneTaskHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		// Проверяем id
 		data, err := tasks.IDValidation(id)
+
 		if err != nil {
 			fmt.Println("Ошибка конвертации входящего значения api/tasks. ", err)
-		}
-
-		// Идём искать одну задачу по входным данным
-		result, err = sqlite.TodoStorage.DeleteTask(data)
-		if err != nil {
-			fmt.Println("Ошибка чтения из БД ", err)
+			errRes.StrEr = "Не верно указан идентификатор"
+			result, err = json.Marshal(errRes)
+		} else {
+			// Идём искать одну задачу по входным данным
+			result, err = sqlite.TodoStorage.DeleteTask(data)
+			if err != nil {
+				fmt.Println("Ошибка чтения из БД ", err)
+			}
 		}
 	}
 

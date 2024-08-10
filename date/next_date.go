@@ -1,4 +1,4 @@
-package tasks
+package date
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	var nextDate time.Time
 
 	// Проверка даты начала отсчёта
-	_, err := DateValidation(date)
+	_, err := Validation(date)
 	if err != nil {
 		fmt.Println("Неверное значение даты начала отсчета для повторений. ", err)
 		return nextDateString, err
@@ -57,7 +57,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		return nextDateString, err0
 	}
 
-	nextDateString = fmt.Sprint(nextDate.Format(DateFormat))
+	nextDateString = fmt.Sprint(nextDate.Format(FormatDate))
 	return nextDateString, nil
 }
 
@@ -73,7 +73,7 @@ func yearDateToRepeat(now time.Time, date string, repeat string) (time.Time, err
 		return nextDate, err0
 	}
 
-	dateStart, err := time.Parse(DateFormat, date)
+	dateStart, err := time.Parse(FormatDate, date)
 	if err != nil {
 		fmt.Println("Не верные данные date. ", err)
 		return nextDate, err
@@ -92,7 +92,7 @@ func dayDateToRepeat(now time.Time, date string, repeat string) (time.Time, erro
 
 	var nextDate time.Time
 
-	dateStart, err := time.Parse(DateFormat, date)
+	dateStart, err := time.Parse(FormatDate, date)
 	if err != nil {
 		fmt.Println("Не верные данные date. ", err)
 		return nextDate, err
@@ -121,7 +121,7 @@ func weekDateToRepeat(now time.Time, date string, repeat string) (time.Time, err
 
 	var nextDate time.Time
 
-	dateStart, err := time.Parse(DateFormat, date)
+	dateStart, err := time.Parse(FormatDate, date)
 	if err != nil {
 		fmt.Println("Не верные данные date. ", err)
 		return nextDate, err

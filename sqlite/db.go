@@ -3,7 +3,6 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -27,15 +26,13 @@ func FindOrCreateDB(todoDB string) (string, error) {
 
 	var dbURL string
 
-	// Если переменная окружения не задани или пуста присвоем адрес текущего каталога
+	// Если переменная окружения не задана или пуста присвоим адрес пакета проетка
 	if todoDB == "" {
-		appPath, err := os.Executable()
-		if err != nil {
-			log.Fatal(err)
-		}
+
+		appPath := "./"
 
 		dbFile := filepath.Join(filepath.Dir(appPath), "scheduler.db")
-		_, err = os.Stat(dbFile)
+		_, err := os.Stat(dbFile)
 
 		fmt.Println("База тут ", dbFile)
 
